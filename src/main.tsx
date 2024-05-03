@@ -54,7 +54,7 @@ function ConfigProvider({ children }: React.PropsWithChildren) {
   };
 
   return (
-    <ConfigContext.Provider value={{ config: wagmiConfig, addChain }}>
+    <ConfigContext.Provider value={{ config, addChain }}>
       {children}
     </ConfigContext.Provider>
   );
