@@ -33,7 +33,7 @@ import {
   usePublicClient,
   useSendTransaction,
 } from "wagmi";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -130,6 +130,7 @@ function ContractRow({
     deploymentTx = testnetDeployTx;
   }
 
+  const queryClient = useQueryClient();
   const { data: contractBytecode } = useQuery({
     queryKey: [chainId, name],
     queryFn: async () =>
@@ -151,10 +152,16 @@ function ContractRow({
           </span>
         ) : deployTx !== undefined ? (
           <Button
-            onClick={() => {
+            onClick={async () => {
               console.log(deploymentTx);
               if (deploymentTx) {
-                sendTransaction({ ...deploymentTx });
+                const hash = await sendTransaction({ ...deploymentTx });
+                await publicClient.waitForTransactionReceipt({
+                  hash,
+                });
+                queryClient.invalidateQueries({
+                  queryKey: [chainId, name],
+                });
               }
             }}
           >
