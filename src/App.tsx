@@ -9,14 +9,39 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
   useAccount,
   useChainId,
   usePublicClient,
   useSendTransaction,
 } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { CircleCheck } from "lucide-react";
+import { useContext } from "react";
+import { ConfigContext } from "./main";
 
 type ContractToDeploy = {
   name: string;
@@ -97,8 +122,6 @@ function ContractRow({
   const publicClient = usePublicClient();
   const { chain } = useAccount();
 
-  console.log(chain?.testnet);
-
   let contractToDeploy = address;
   if (chain?.testnet == true && testnetAddress !== undefined) {
     contractToDeploy = testnetAddress;
@@ -116,11 +139,7 @@ function ContractRow({
       }),
   });
   const contractDeployed = contractBytecode !== undefined;
-  const { data: hash, sendTransaction, error } = useSendTransaction();
-
-  console.log(hash, error);
-
-  console.log(chain?.testnet);
+  const { sendTransaction } = useSendTransaction();
 
   return (
     <TableRow>
@@ -150,31 +169,131 @@ function ContractRow({
   );
 }
 
+const formSchema = z.object({
+  name: z.string(),
+  chainId: z.string().refine(
+    (v) => {
+      let n = Number(v);
+      return !isNaN(n) && v?.length > 0;
+    },
+    { message: "Invalid number" },
+  ),
+  rpcUrl: z.string(),
+});
+
 function App() {
+  const { addChain } = useContext(ConfigContext);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      rpcUrl: "",
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    // Do something with the form values.
+    // ✅ This will be type-safe and validated.
+    console.log(values);
+
+    addChain({
+      name: values.name,
+      chainId: Number(values.chainId),
+      rpcUrl: values.rpcUrl,
+    });
+  }
   return (
     <>
-      <div>
-        <div className="container">
-          <div className="flex flex-col items-center justify-center mb-8">
-            <h2 className="my-6 text-3xl font-bold">Tokenbound Deployer</h2>
-            <ConnectButton />
+      <Dialog>
+        <div>
+          <div className="container">
+            <div className="flex flex-col items-center justify-center mb-8">
+              <h2 className="my-6 text-3xl font-bold">Tokenbound Deployer</h2>
+              <ConnectButton />
+              <div className="flex flex-row mt-2 text-sm">
+                Don't see the chain you're looking for?
+                <DialogTrigger className="ml-1 underline">
+                  Add a chain
+                </DialogTrigger>
+              </div>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Contract</TableHead>
+                  <TableHead>Address</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {CONTRACTS.map((contract) => (
+                  <ContractRow {...contract} />
+                ))}
+              </TableBody>
+            </Table>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Contract</TableHead>
-                <TableHead>Address</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {CONTRACTS.map((contract) => (
-                <ContractRow {...contract} />
-              ))}
-            </TableBody>
-          </Table>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="mb-6">Add a Custom Chain</DialogTitle>
+              <DialogDescription>
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-8"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ethereum" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="chainId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Chain ID</FormLabel>
+                          <FormControl>
+                            <Input placeholder="12345" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="rpcUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>RPC URL</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="https://rpc.yourchain.com"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <DialogClose asChild>
+                      <Button type="submit">Add Chain</Button>
+                    </DialogClose>
+                  </form>
+                </Form>
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
         </div>
-      </div>
+      </Dialog>
     </>
   );
 }
