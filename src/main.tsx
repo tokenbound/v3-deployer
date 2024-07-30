@@ -3,7 +3,7 @@ import { Buffer } from "buffer";
 import React, { useContext, createContext, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { WagmiProvider } from "wagmi";
-import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
 
 import App from "./App.tsx";
 import { config as wagmiConfig } from "./wagmi";
@@ -31,26 +31,26 @@ function ConfigProvider({ children }: React.PropsWithChildren) {
   const [config, setConfig] = useState(wagmiConfig);
 
   const addChain = ({ name, chainId, rpcUrl }: AddChainParams) => {
-    setConfig((config) => ({
-      ...config,
-      chains: [
-        defineChain({
-          id: chainId,
-          name,
-          rpcUrls: {
-            default: {
-              http: [rpcUrl],
-            },
-          },
-          nativeCurrency: {
-            name: "Ether",
-            symbol: "ETH",
-            decimals: 18,
-          },
-        }),
-        ...config.chains,
-      ],
-    }));
+    const newChain = defineChain({
+      id: chainId,
+      name,
+      rpcUrls: {
+        default: {
+          http: [rpcUrl],
+        },
+      },
+      nativeCurrency: {
+        name: "Ether",
+        symbol: "ETH",
+        decimals: 18,
+      },
+    });
+    const newConfig = getDefaultConfig({
+      appName: "My RainbowKit App",
+      projectId: import.meta.env.VITE_WC_PROJECT_ID,
+      chains: [newChain, ...config.chains],
+    });
+    setConfig(newConfig);
   };
 
   return (

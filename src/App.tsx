@@ -139,7 +139,7 @@ function ContractRow({
       }),
   });
   const contractDeployed = contractBytecode !== undefined;
-  const { sendTransaction } = useSendTransaction();
+  const { sendTransactionAsync } = useSendTransaction();
 
   return (
     <TableRow>
@@ -155,10 +155,12 @@ function ContractRow({
             onClick={async () => {
               console.log(deploymentTx);
               if (deploymentTx) {
-                const hash = await sendTransaction({ ...deploymentTx });
-                await publicClient.waitForTransactionReceipt({
+                const hash = await sendTransactionAsync({ ...deploymentTx });
+
+                await publicClient?.waitForTransactionReceipt({
                   hash,
                 });
+
                 queryClient.invalidateQueries({
                   queryKey: [chainId, name],
                 });
@@ -234,7 +236,7 @@ function App() {
               </TableHeader>
               <TableBody>
                 {CONTRACTS.map((contract) => (
-                  <ContractRow {...contract} />
+                  <ContractRow {...contract} key={contract.address} />
                 ))}
               </TableBody>
             </Table>
