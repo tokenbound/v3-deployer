@@ -20,6 +20,7 @@ type AddChainParams = {
   name: string;
   chainId: number;
   rpcUrl: string;
+  blockExplorerUrl: string;
 };
 
 export const ConfigContext = createContext({
@@ -30,7 +31,7 @@ export const ConfigContext = createContext({
 function ConfigProvider({ children }: React.PropsWithChildren) {
   const [config, setConfig] = useState(wagmiConfig);
 
-  const addChain = ({ name, chainId, rpcUrl }: AddChainParams) => {
+  const addChain = ({ name, chainId, rpcUrl, blockExplorerUrl }: AddChainParams) => {
     const newChain = defineChain({
       id: chainId,
       name,
@@ -38,6 +39,12 @@ function ConfigProvider({ children }: React.PropsWithChildren) {
         default: {
           http: [rpcUrl],
         },
+      },
+      blockExplorers: {
+        default: {
+          name: name,
+          url: blockExplorerUrl,
+        }
       },
       nativeCurrency: {
         name: "Ether",

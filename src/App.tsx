@@ -187,6 +187,7 @@ const formSchema = z.object({
     { message: "Invalid number" },
   ),
   rpcUrl: z.string(),
+  blockExplorerUrl: z.string(),
 });
 
 function App() {
@@ -209,6 +210,7 @@ function App() {
       name: values.name,
       chainId: Number(values.chainId),
       rpcUrl: values.rpcUrl,
+      blockExplorerUrl: values.blockExplorerUrl,
     });
   }
   return (
@@ -285,6 +287,22 @@ function App() {
                           <FormControl>
                             <Input
                               placeholder="https://rpc.yourchain.com"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="blockExplorerUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Block Explorer URL</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="https://etherscan.io"
                               {...field}
                             />
                           </FormControl>
