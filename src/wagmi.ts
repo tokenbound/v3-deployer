@@ -21,7 +21,8 @@ const customChain = defineChain({
   },
 });
 
-const allChains = Object.values(chainExports);
+// Some chain definitions have no public RPC; users must add those with their own URL.
+const allChains = Object.values(chainExports).filter((chain) => chain.rpcUrls.default.http[0]);
 
 export function createWagmiConfig(chains: [Chain, ...Chain[]]) {
   const projectId = import.meta.env.VITE_WC_PROJECT_ID;
