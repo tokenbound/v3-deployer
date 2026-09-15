@@ -3,10 +3,10 @@ import { Buffer } from "buffer";
 import React, { useContext, createContext, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { WagmiProvider } from "wagmi";
-import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 import App from "./App.tsx";
-import { config as wagmiConfig } from "./wagmi";
+import { config as wagmiConfig, createWagmiConfig } from "./wagmi";
 
 import "./index.css";
 import "@rainbow-me/rainbowkit/styles.css";
@@ -45,11 +45,7 @@ function ConfigProvider({ children }: React.PropsWithChildren) {
         decimals: 18,
       },
     });
-    const newConfig = getDefaultConfig({
-      appName: "My RainbowKit App",
-      projectId: import.meta.env.VITE_WC_PROJECT_ID,
-      chains: [newChain, ...config.chains],
-    });
+    const newConfig = createWagmiConfig([newChain, ...config.chains]);
     setConfig(newConfig);
   };
 
